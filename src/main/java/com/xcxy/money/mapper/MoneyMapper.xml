@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xcxy.money.dao.MoneyMapper">
+<resultMap type="com.xcxy.money.entity.Money" id="MoneyMap">
+    <result column="m_num" jdbcType="INTEGER"
+			property="mNum" />
+	<result column="m_dnum" jdbcType="VARCHAR"
+			property="mDnum" />
+	<result column="m_pname" jdbcType="VARCHAR"
+			property="mPname" />
+	<result column="m_min" jdbcType="DOUBLE"
+			property="mMin" />
+	<result column="m_max" jdbcType="DOUBLE"
+			property="mMax" />
+	<result column="m_safe" jdbcType="VARCHAR"
+			property="mSafe" />
+</resultMap>
+<resultMap type="com.xcxy.money.entity.History" id="HisMap">
+    <result column="h_id" jdbcType="INTEGER"
+			property="hId" />
+	<result column="h_num" jdbcType="VARCHAR"
+			property="hNum" />
+	<result column="h_content" jdbcType="VARCHAR"
+			property="hContent" />
+	<result column="h_percentage" jdbcType="DOUBLE"
+			property="hPercentage" />
+	<result column="h_money" jdbcType="INTEGER"
+			property="hMoney" />
+	<result column="h_time" jdbcType="TIMESTAMP"
+			property="hTime" />
+</resultMap>
+<resultMap type="com.xcxy.money.entity.Bank" id="BanMap">
+    <result column="b_wnum" jdbcType="VARCHAR"
+			property="bWnum" />
+	<result column="b_num" jdbcType="VARCHAR"
+			property="bNum" />
+	<result column="b_bank" jdbcType="VARCHAR"
+			property="bBank" />
+</resultMap>
+<!-- 工资列表 -->
+<select id="findMoneyList" resultMap="MoneyMap" parameterType="com.xcxy.money.entity.Money">
+select*from money
+			<if test="mDnum !=null and mDnum !='null'">
+				where m_dnum=#{mDnum,jdbcType=VARCHAR}
+				<if test="mPname !=null and mPname !='null'">
+				and m_pname=#{mPname,jdbcType=VARCHAR}
+				</if>
+			</if>
+			order by m_dnum
+</select>
+<!-- 改工资 -->
+<update id="updateMoneyByDnumAndPname" parameterType="com.xcxy.money.entity.Money">
+update money set m_min=#{mMin,jdbcType=DOUBLE}, m_max=#{mMax,jdbcType=DOUBLE} ,m_safe="五险" where m_dnum=#{mDnum,jdbcType=VARCHAR} and m_pname=#{mPname,jdbcType=VARCHAR}
+</update>
+<!-- 改工资表里的部门编号 -->
+<update id="updateMoneyDnum" parameterType="com.xcxy.money.entity.Money">
+update money set m_dnum=#{newmDnum,jdbcType=VARCHAR} where m_dnum=#{mDnum,jdbcType=VARCHAR}
+</update>
+<!-- 根据员工编号获取奖惩记录 -->
+<select id="findHistoryByNum" resultMap="HisMap" parameterType="com.xcxy.money.entity.History">
+	select*from history where h_num=#{hNum,jdbcType=VARCHAR} 
+	<if test="hContent =='本月'">
+	 and DATE_FORMAT(h_time,'%Y%m')=DATE_FORMAT(CURDATE( ),'%Y%m')
+	</if>
+	<if test="hContent =='三月内'">
+	 and h_time >DATE_SUB(CURDATE(), INTERVAL 3 MONTH)
+	</if>
+</select>
+<!-- 添加记录 -->
+<insert id="addHistoryByNum" parameterType="com.xcxy.money.entity.History">
+	INSERT into history(h_num,h_content,h_percentage,h_money,h_time) 
+		values(#{hNum,jdbcType=VARCHAR},#{hContent,jdbcType=VARCHAR},
+			   #{hPercentage,jdbcType=DOUBLE},#{hMoney,jdbcType=INTEGER},
+			   #{hTime,jdbcType=TIMESTAMP})
+</insert>
+<!-- 根据员工编号查询银行卡信息 -->
+<select id="selectBankBywNum" resultMap="BanMap" parameterType="java.lang.String">
+	select*from bank where b_wnum=#{bWnum,jdbcType=VARCHAR}
+</select>
+<!-- 修改银行卡 -->
+<update id="updatBank" parameterType="com.xcxy.money.entity.Bank">
+	update bank set b_num=#{bNum,jdbcType=VARCHAR},b_bank=#{bBank,jdbcType=VARCHAR}
+		where b_wnum=#{bWnum,jdbcType=VARCHAR}
+</update>
+<!-- 添加银行卡 -->
+<insert id="addBank" parameterType="com.xcxy.money.entity.Bank">
+	insert into bank(b_num,b_wnum,b_bank) 
+		values(#{bNum,jdbcType=VARCHAR},#{bWnum,jdbcType=VARCHAR},
+		#{bBank,jdbcType=VARCHAR})
+</insert>
+<!-- 删除一个部门的工资信息 -->
+<delete id="deleteMoneyByDnum" parameterType="java.lang.String">
+	delete from money where m_dnum=#{dNum,jdbcType=VARCHAR}
+</delete>
+</mapper>

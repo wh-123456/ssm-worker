@@ -1,0 +1,339 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xcxy.worker.dao.WorkerMapper">
+<resultMap id="WorkerMap"
+		type="com.xcxy.worker.entity.Worker">
+		<id column="w_num" jdbcType="VARCHAR" property="wNum" />
+		<result column="w_name" jdbcType="VARCHAR"
+			property="wName" />
+		<result column="w_sex" jdbcType="VARCHAR"
+			property="wSex" />
+		<result column="w_dnum" jdbcType="VARCHAR" 
+			property="wDnum" />
+		<result column="w_pname" jdbcType="VARCHAR"
+			property="wPname" />
+		<result column="d_name" jdbcType="VARCHAR"
+			property="department" />
+	</resultMap>
+<!-- 去重专用 -->
+	<resultMap id="WorkerMap2"
+		type="com.xcxy.worker.entity.Worker">
+		<id column="w_num" jdbcType="VARCHAR" property="wNum" />
+		<result column="p_num" jdbcType="VARCHAR"
+			property="wName" />
+		
+	</resultMap>
+	
+	<resultMap id="WorkerInfoMap"
+		type="com.xcxy.worker.entity.WorkerInfo">
+		<id column="wi_num" jdbcType="VARCHAR" property="wiNum" />
+		<result column="wi_age" jdbcType="INTEGER"
+			property="wiAge" />
+		<result column="w_name" jdbcType="VARCHAR"
+			property="wiName" />
+		<result column="birthday" jdbcType="VARCHAR"
+			property="birthday" />
+		<result column="wi_sex" jdbcType="VARCHAR"
+			property="wiSex" />
+		<result column="wi_address" jdbcType="VARCHAR" 
+			property="wiAddress" />
+		<result column="wi_background" jdbcType="VARCHAR"
+			property="wiBackground" />
+		<result column="IDcard" jdbcType="VARCHAR"
+			property="idCard" />
+		<result column="wi_time" jdbcType="TIMESTAMP"
+			property="wiTime" />
+		<result column="wi_school" jdbcType="VARCHAR"
+			property="wiSchool" />
+		<result column="wi_education" jdbcType="VARCHAR"
+			property="wiEducation" />
+		<result column="wi_speciality" jdbcType="VARCHAR" 
+			property="wiSpeciality" />
+		<result column="wi_language" jdbcType="VARCHAR"
+			property="wiLanguage" />
+		<result column="d_num" jdbcType="VARCHAR"
+			property="wiDnum" />
+	</resultMap>
+	
+	<!-- 员工列表 -->
+	<select id="findWorkerList" resultMap="WorkerMap">
+	select*from worker w,department d where w.w_dnum=d.d_num
+	</select>
+	<!-- 主管列表 -->
+	<select id="getBossList" resultMap="WorkerMap">
+	select*from worker w where w_pname="主管"
+	</select>
+	<!-- 普通员工列表 -->
+	<select id="getpeopleList" resultMap="WorkerMap">
+	select*from worker w where w_pname!="主管"
+	</select>
+	<!-- 员工列表 2-->
+	<select id="findWorkerListAll" resultMap="WorkerMap2">
+	select*from worker , practice
+	</select>
+	<!-- 除部门主管外部门员工列表 -->
+	<select id="findWorkerByNum" resultMap="WorkerMap" parameterType="com.xcxy.worker.entity.Worker">
+	select * from worker w,department d where w.w_dnum=d.d_num 
+		<if test="wDnum != null and wDnum!='null' and wDnum!=''">
+			and w.w_dnum=#{wDnum,jdbcType=VARCHAR}
+		</if>
+	</select>
+	<!-- 员工精准查询 -->
+	<select id="selectWorkerbywNum" resultMap="WorkerMap" parameterType="java.lang.String">
+	select*from worker w,department d where w.w_num=#{wNum,jdbcType=VARCHAR} and w.w_dnum=d.d_num
+	</select>
+	<!-- 管理员精准查询 -->
+	<select id="selectBossbywNum" resultMap="WorkerMap" parameterType="java.lang.String">
+	select*from worker w where w.w_num=#{wNum,jdbcType=VARCHAR} 
+	</select>
+	<!-- 搜索部门员工 -->
+	<select id="findWorkerByNameOrNum2" resultMap="WorkerMap" parameterType="com.xcxy.worker.entity.Worker">
+	select*from worker w,department d where (w.w_num like #{wName,jdbcType=VARCHAR} or w.w_name like #{wName,jdbcType=VARCHAR}) and w.w_dnum=d.d_num
+		<if test="wDnum != null and wDnum!='null' and wDnum!=''">
+			and w.w_dnum=#{wDnum,jdbcType=VARCHAR}
+		</if>
+	</select>
+	<!-- 员工列表增 -->
+	<insert id="addWorker"
+		parameterType="com.xcxy.worker.entity.Worker">
+		insert into worker
+		<trim prefix="(" suffix=")" suffixOverrides=",">
+			<if test="wNum != null">
+				w_num,
+			</if>
+			<if test="wName != null">
+				w_name,
+			</if>
+			<if test="wSex != null">
+				w_sex,
+			</if>
+			<if test="wDnum != null">
+				w_dnum,
+			</if>
+			<if test="wPname != null">
+				w_pname,
+			</if>
+		</trim>
+		<trim prefix="values (" suffix=")" suffixOverrides=",">
+			<if test="wNum != null">
+				#{wNum,jdbcType=VARCHAR},
+			</if>
+			<if test="wName != null">
+				#{wName,jdbcType=VARCHAR},
+			</if>
+			<if test="wSex != null">
+				#{wSex,jdbcType=VARCHAR},
+			</if>
+			<if test="wDnum != null">
+				#{wDnum,jdbcType=VARCHAR},
+			</if>
+			<if test="wPname != null">
+				#{wPname,jdbcType=VARCHAR},
+			</if>
+		</trim>
+	</insert>
+	<!-- 员工列表删 -->
+	<delete id="deleteWorkerById" parameterType="java.lang.String">
+		delete from worker
+		where w_num = #{wNum,jdbcType=VARCHAR}
+	</delete>
+	<!-- 员工列表批量删除 -->
+	<delete id="deleteWorkerSome" parameterType="java.util.List">
+		delete from worker
+		where w_num in 
+		<foreach collection="list" item="item" index="index" open="(" close=")" separator=","> 
+            #{item}
+        </foreach>
+	</delete>
+	<!-- 员工列表改 -->
+	<update id="updateworkerById"
+		parameterType="com.xcxy.worker.entity.Worker">
+		update worker
+		<set>
+			<if test="newWnum != null">
+				w_num = #{newWnum,jdbcType=VARCHAR},
+			</if>
+			<if test="wName != null">
+				w_name=#{wName,jdbcType=VARCHAR},
+			</if>
+			<if test="wSex != null">
+				w_sex=#{wSex,jdbcType=VARCHAR},
+			</if>
+			<if test="wDnum != null">
+				w_dnum=#{wDnum,jdbcType=VARCHAR},
+			</if>
+			<if test="wPname != null">
+				w_pname=#{wPname,jdbcType=VARCHAR},
+			</if>
+		</set>
+		where w_num = #{wNum,jdbcType=VARCHAR}
+	</update>
+	<!-- 员工信息列表 -->
+	<select id="findWorkerInfo" resultMap="WorkerInfoMap">
+	select*from worker_info wi,worker w where wi.wi_num=w.w_num
+	</select>
+	<!-- 员工信息列表 -->
+	<select id="findWorkerInfoByDnum" resultMap="WorkerInfoMap" parameterType="com.xcxy.worker.entity.WorkerInfo">
+	select*from worker_info wi,worker w where wi.wi_num=w.w_num 
+		<if test="wiDnum != null and wiDnum!='null' and wiDnum!=''">
+			and w.w_dnum=#{wiDnum,jdbcType=VARCHAR}
+		</if>
+			and w.w_num!=#{wiNum,jdbcType=VARCHAR}
+	</select>
+	<!-- 精准查询——查询某位员工的信息 -->
+	<select id="findWorkerInfoById" resultMap="WorkerInfoMap" parameterType="java.lang.String">
+	select*from worker_info wi,worker w where wi.wi_num=w.w_num and w.w_num=#{wNum,jdbcType=VARCHAR}
+	</select>
+	<!-- 员工查询-->
+	<select id="findWorkerInfoByIdOrName" resultMap="WorkerInfoMap" parameterType="com.xcxy.worker.entity.WorkerInfo">
+	select*from worker_info wi,worker w where (w.w_num like #{wiName,jdbcType=VARCHAR} or w.w_name like #{wiName,jdbcType=VARCHAR})
+	and wi.wi_num=w.w_num 
+		<if test="wiDnum != null and wiDnum!='null' and wiDnum!=''">
+			and w.w_dnum=#{wiDnum,jdbcType=VARCHAR}
+		</if>
+	</select>
+	<!-- 部门员工查询-->
+	<select id="findWorkerInfoByIdOrName2" resultMap="WorkerInfoMap" parameterType="com.xcxy.worker.entity.WorkerInfo">
+	select*from worker_info wi,worker w where (w.w_num like #{wiName,jdbcType=VARCHAR} or w.w_name like #{wiName,jdbcType=VARCHAR})
+	and wi.wi_num=w.w_num and w.w_dnum=#{wiDnum,jdbcType=VARCHAR}
+	</select>
+
+	<!-- 员工信息表增 -->
+	<insert id="addworkerInfo"
+		parameterType="com.xcxy.worker.entity.WorkerInfo">
+		insert into worker_info
+		<trim prefix="(" suffix=")" suffixOverrides=",">
+			<if test="wiNum != null">
+				wi_num,
+			</if>
+			<if test="wiSex != null">
+				wi_sex,
+			</if>
+			<if test="wiAge != null">
+				wi_age,
+			</if>
+			<if test="birthday!= null">
+				birthday,
+			</if>
+			<if test="wiAddress != null">
+				wi_address,
+			</if>
+			<if test="wiBackground!= null">
+				wi_background,
+			</if>
+			<if test="wiTime != null">
+				wi_time,
+			</if>
+			<if test="wiSchool != null">
+				wi_school,
+			</if>
+			<if test="wiSpeciality != null">
+				wi_speciality,
+			</if>
+			<if test="wiEducation != null">
+				wi_education,
+			</if>
+			<if test="wiLanguage != null">
+				wi_language,
+			</if>
+			<if test="idCard!= null">
+				IDcard,
+			</if>
+		</trim>
+		<trim prefix="values (" suffix=")" suffixOverrides=",">
+			<if test="wiNum != null">
+				#{wiNum,jdbcType=VARCHAR},
+			</if>
+			<if test="wiSex != null">
+				#{wiSex,jdbcType=VARCHAR},
+			</if>
+			<if test="wiAge != null">
+				#{wiAge,jdbcType=INTEGER},
+			</if>
+			<if test="birthday!= null">
+				#{birthday,jdbcType=VARCHAR},
+			</if>
+			<if test="wiAddress != null">
+				#{wiAddress,jdbcType=VARCHAR},
+			</if>
+			<if test="wiBackground!= null">
+				#{wiBackground,jdbcType=VARCHAR},
+			</if>
+			<if test="wiTime != null">
+				#{wiTime,jdbcType=TIMESTAMP},
+			</if>
+			<if test="wiSchool != null">
+				#{wiSchool,jdbcType=VARCHAR},
+			</if>
+			<if test="wiSpeciality != null">
+				#{wiSpeciality,jdbcType=VARCHAR},
+			</if>
+			<if test="wiEducation != null">
+				#{wiEducation,jdbcType=VARCHAR},
+			</if>
+			<if test="wiLanguage != null">
+				#{wiLanguage,jdbcType=VARCHAR},
+			</if>
+			<if test="idCard!= null">
+				#{idCard,jdbcType=VARCHAR},
+			</if>
+		</trim>
+	</insert>
+	<!-- 员工信息表删 -->
+	<delete id="deleteworkerInfoById" parameterType="java.lang.String">
+		delete from worker_info
+		where wi_num = #{wiNum,jdbcType=VARCHAR}
+	</delete>
+	<!-- 员工信息表批量删 -->
+	<delete id="deleteworkerInfoSome" parameterType="java.util.List">
+		delete from worker_info
+		where wi_num in 
+		<foreach collection="list" item="item" index="index" open="(" close=")" separator=","> 
+            #{item}
+        </foreach>
+	</delete>
+	<!-- 员工信息表改 -->
+	<update id="updateworkerInfoById"
+		parameterType="com.xcxy.worker.entity.WorkerInfo">
+		update worker_info
+		<set>
+			<if test="newWinum != null">
+				wi_num = #{newWinum,jdbcType=VARCHAR},
+			</if>
+			<if test="wiSex != null">
+				wi_sex=#{wiSex,jdbcType=VARCHAR},
+			</if>
+			<if test="wiAge != null">
+				wi_age=#{wiAge,jdbcType=INTEGER},
+			</if>
+			<if test="birthday!= null">
+				birthday=#{birthday,jdbcType=VARCHAR},
+			</if>
+			<if test="wiAddress != null">
+				wi_address=#{wiAddress,jdbcType=VARCHAR},
+			</if>
+			<if test="wiBackground!= null">
+				wi_background=#{wiBackground,jdbcType=VARCHAR},
+			</if>
+			<if test="wiTime != null">
+				wi_time=#{wiTime,jdbcType=TIMESTAMP},
+			</if>
+			<if test="wiSchool != null">
+				wi_school=#{wiSchool,jdbcType=VARCHAR},
+			</if>
+			<if test="wiSpeciality != null">
+				wi_speciality=#{wiSpeciality,jdbcType=VARCHAR},
+			</if>
+			<if test="wiEducation != null">
+				wi_education=#{wiEducation,jdbcType=VARCHAR},
+			</if>
+			<if test="wiLanguage != null">
+				wi_language=#{wiLanguage,jdbcType=VARCHAR},
+			</if>
+			<if test="idCard!= null">
+				IDcard=#{idCard,jdbcType=VARCHAR},
+			</if>
+		</set>
+		where wi_num = #{wiNum,jdbcType=VARCHAR}
+	</update>
+</mapper>

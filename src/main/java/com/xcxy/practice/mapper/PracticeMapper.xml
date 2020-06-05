@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xcxy.practice.dao.PracticeMapper">
+<resultMap type="com.xcxy.practice.entity.Practice" id="PracticeMap">
+    <result column="p_num" jdbcType="VARCHAR"
+			property="pNum" />
+	<result column="p_name" jdbcType="VARCHAR"
+			property="pName" />
+	<result column="p_sex" jdbcType="VARCHAR"
+			property="pSex" />
+	<result column="p_dnum" jdbcType="VARCHAR"
+			property="pDnum" />
+	<result column="p_school" jdbcType="VARCHAR"
+			property="pSchool" />
+	<result column="p_education" jdbcType="VARCHAR"
+			property="pEducation" />
+	<result column="p_speciality" jdbcType="VARCHAR"
+			property="pSpeciality" />
+	<result column="p_stime" jdbcType="TIMESTAMP"
+			property="pStime" />
+	<result column="p_etime" jdbcType="TIMESTAMP"
+			property="pEtime" />
+	<result column="d_name" jdbcType="VARCHAR"
+			property="pDname" />
+			
+</resultMap>
+<!-- 增加实习员工 -->
+<insert id="addpractice" parameterType="com.xcxy.practice.entity.Practice">
+insert into practice(p_num,p_name,p_sex,p_dnum,p_school,p_education,p_speciality,p_stime,p_etime)
+values(#{pNum,jdbcType=VARCHAR},#{pName,jdbcType=VARCHAR},#{pSex,jdbcType=VARCHAR},#{pDnum,jdbcType=VARCHAR},
+#{pSchool,jdbcType=VARCHAR},#{pEducation,jdbcType=VARCHAR},#{pSpeciality,jdbcType=VARCHAR},
+#{pStime,jdbcType=TIMESTAMP},#{pEtime,jdbcType=TIMESTAMP})
+</insert>
+<!-- 开除实习员工 -->
+<delete id="deletepractice" parameterType="java.lang.String">
+delete from practice where p_num=#{pNum,jdbcType=VARCHAR}
+</delete>
+<!-- 删除一个部门所有实习生 -->
+<delete id="deletePracticeByDnum" parameterType="java.lang.String">
+	delete from practice where p_dnum=#{dNum,jdbcType=VARCHAR}
+</delete>
+<!-- 更改实习员工信息 -->
+<update id="updatepractice" parameterType="com.xcxy.practice.entity.Practice">
+update practice set p_name=#{pName,jdbcType=VARCHAR},p_sex=#{pSex,jdbcType=VARCHAR},
+p_dnum=#{pDnum,jdbcType=VARCHAR},p_school=#{pSchool,jdbcType=VARCHAR},p_education=#{pEducation,jdbcType=VARCHAR},
+p_speciality=#{pSpeciality,jdbcType=VARCHAR},p_stime=#{pStime,jdbcType=TIMESTAMP},p_etime=#{pEtime,jdbcType=TIMESTAMP}
+where p_num=#{pNum,jdbcType=VARCHAR}
+</update>
+<!-- 实习员工转正 -->
+<insert id="insertpracticeToworker" parameterType="java.lang.String">
+insert into worker(w_num,w_name,w_sex,w_dnum,w_pname) 
+SELECT p_num,p_name,p_sex,p_dnum,"职员" from practice where p_num=#{pNum,jdbcType=VARCHAR}
+</insert>
+<!-- 实习员工列表 -->
+<select id="findpracticeList" resultMap="PracticeMap" parameterType="com.xcxy.practice.entity.Practice">
+select*from practice p,department d where p.p_dnum=d.d_num
+			<if test="pDnum!=null and pDnum!='null' and pDnum!=''">
+				and p_dnum=#{pDnum,jdbcType=VARCHAR}
+			</if>
+			<if test="pName !=null and pName !='null' and pName !=''">
+				and (p_name  like #{pName,jdbcType=VARCHAR} or p_num like #{pName,jdbcType=VARCHAR})
+			</if>
+			
+			order by d_num
+</select>
+<!-- 根据实习编号查询实习员工信息 -->
+<select id="selectpracticeByNum" parameterType="java.lang.String" resultMap="PracticeMap">
+select*from practice p,department d where p.p_num=#{pNum,jdbcType=VARCHAR} and p.p_dnum=d.d_num
+</select>
+<!-- 修改一个部门实习生实习编号 -->
+<update id="updateallpracticeDnum" parameterType="com.xcxy.department.entity.Department">
+	update practice set p_dnum=#{newdNum,jdbcType=VARCHAR} where p_dnum=#{dNum,jdbcType=VARCHAR};
+</update>
+<!-- 将一个部门的实习生修改为待分配状态 -->
+<update id="updatepracticeToBydNum" parameterType="java.lang.String">
+	update practice set p_dnum=10000 where p_dnum=#{dNum,jdbcType=VARCHAR};
+</update>
+</mapper>

@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xcxy.affairs.dao.AffairsMapper">
+<resultMap id="affairsMap"
+		type="com.xcxy.affairs.entity.Affairs">
+		<id column="a_num" jdbcType="INTEGER" property="aNum" />
+		<result column="a_type" jdbcType="VARCHAR"
+			property="aType" />
+		<result column="a_dNum" jdbcType="VARCHAR"
+			property="aDnum" />
+		<result column="a_dName" jdbcType="VARCHAR"
+			property="aDname" />
+		<result column="a_wNum" jdbcType="VARCHAR" 
+			property="aWnum" />
+		<result column="a_wName" jdbcType="VARCHAR"
+			property="aWname" />
+		<result column="a_content" jdbcType="VARCHAR"
+			property="aContent" />
+		<result column="a_state" jdbcType="VARCHAR"
+			property="aState" />
+		<result column="a_pName" jdbcType="VARCHAR"
+			property="aPname" />
+		<result column="a_time" jdbcType="TIMESTAMP"
+			property="aTime" />
+	</resultMap>
+	<!-- 查询招聘信息 -->
+	<select id="getrecruitList" resultMap="affairsMap">
+		select*from affairs where a_type="招聘" order by a_time
+	</select>
+	<!-- 查询招聘的部门，这里进行去重 -->
+	<select id="getrecruitDnum" resultMap="affairsMap">
+	select distinct a_dNum ,a_dName from affairs where a_type="招聘"
+	</select>
+	<!-- 根据部门编号查询招聘职位 -->
+	<select id="getrecruitPnameBydNum" parameterType="java.lang.String" resultMap="affairsMap">
+	SELECT A_PNAME from affairs where a_type="招聘" and a_dNum=#{dNum,jdbcType=VARCHAR}
+	</select>
+	<!-- 根据员工编号查询自己已提交的事务 -->
+	<select id="selectpracticeByNum" resultMap="affairsMap" parameterType="java.lang.String">
+	select * from affairs where a_wNum=#{wNum,jdbcType=VARCHAR}
+	</select>
+	<!-- 部门主管查看本部门提交的未处理的事务 -->
+	<select id="selectBosspromotionBydNum" resultMap="affairsMap" parameterType="java.lang.String">
+	select*from affairs where a_dNum=#{dNum,jdbcType=VARCHAR} and a_state="未审核" order by a_time 
+	</select>
+	<!-- 员工根据部门编号查看公告 -->
+	<select id="selectnoticeByDnum" resultMap="affairsMap" parameterType="com.xcxy.affairs.entity.Affairs" >
+	  select*from affairs where
+	   <if test="aDnum!=null">
+	   (a_dnum=#{aDnum,jdbcType=VARCHAR} and a_type="公告") or a_type="全员公告"
+	   </if>
+	   <if test="aDnum==null">
+	    a_dnum="boss"
+	   </if>
+	   <if test="aNum==2">
+	    or a_type="主管公告"
+	   </if>
+	</select>
+	<!-- 主管或者admin查看已发布公告 -->
+	<select id="selectMynotice" resultMap="affairsMap" parameterType="com.xcxy.affairs.entity.Affairs" >
+	  	select*from affairs where
+	   <if test="aDnum!=''">
+	   (a_dnum=#{aDnum,jdbcType=VARCHAR} and a_type="公告")
+	   </if>
+	   <if test="aDnum==''">
+	    a_dnum="boss"
+	   </if>
+	   order by a_time
+	</select>
+	<!-- 添加事务-->
+	<insert id="addAffairs"
+		parameterType="com.xcxy.affairs.entity.Affairs">
+		insert into affairs
+		<trim prefix="(" suffix=")" suffixOverrides=",">
+			<if test="aType != null">
+				a_type,
+			</if>
+			<if test="aDnum != null">
+				a_dNum,
+			</if>
+			<if test="aDname != null">
+				a_dName,
+			</if>
+			<if test="aWnum!= null">
+				a_wNum,
+			</if>
+			<if test="aWname != null">
+				a_wName,
+			</if>
+			<if test="aContent != null">
+				a_content,
+			</if>
+			<if test="aTime != null">
+				a_time,
+			</if>
+			<if test="aState != null">
+				a_state,
+			</if>
+			<if test="aPname != null">
+				a_pName,
+			</if>
+		</trim>
+		<trim prefix="values (" suffix=")" suffixOverrides=",">
+			<if test="aType != null">
+				#{aType,jdbcType=VARCHAR},
+			</if>
+			<if test="aDnum != null">
+				#{aDnum,jdbcType=VARCHAR},
+			</if>
+			<if test="aDname != null">
+				#{aDname,jdbcType=VARCHAR},
+			</if>
+			<if test="aWnum != null">
+				#{aWnum,jdbcType=VARCHAR},
+			</if>
+			<if test="aWname != null">
+				#{aWname,jdbcType=VARCHAR},
+			</if>
+			<if test="aContent != null">
+				#{aContent,jdbcType=VARCHAR},
+			</if>
+			<if test="aTime != null">
+				#{aTime,jdbcType=TIMESTAMP},
+			</if>
+			<if test="aState != null">
+				#{aState,jdbcType=VARCHAR},
+			</if>
+			<if test="aPname != null">
+				#{aPname,jdbcType=VARCHAR},
+			</if>
+		</trim>
+	</insert>
+	
+	<!-- 删除事务 -->
+	<delete id="deletepracticeByNum" parameterType="java.lang.String">
+	delete from affairs  where a_wNum=#{wNum,jdbcType=VARCHAR}
+	</delete>
+	<!-- 删除事务 -->
+	<delete id="deletepracticeById" parameterType="java.lang.Integer">
+	delete from affairs  where a_num=#{id,jdbcType=INTEGER}
+	</delete>
+	<!-- 同意事务 -->
+	<update id="argeepromotion" parameterType="java.lang.String">
+	update affairs set a_state="已同意" where a_wNum=#{wNum,jdbcType=VARCHAR}
+	</update>
+	<!-- 拒绝事务 -->
+	<update id="noargeePromotion" parameterType="java.lang.String">
+	update affairs set a_state="不同意" where a_wNum=#{wNum,jdbcType=VARCHAR}
+	</update>
+
+</mapper>

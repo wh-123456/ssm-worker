@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xcxy.resume.dao.ResumeMapper">
+<resultMap type="com.xcxy.resume.entity.Resume" id="ResumeMap">
+	<result column="r_num" jdbcType="INTEGER"
+			property="rId" />
+	<result column="r_name" jdbcType="VARCHAR"
+			property="rName" />
+	<result column="r_dnum" jdbcType="VARCHAR"
+			property="rDnum" />
+	<result column="r_pname" jdbcType="VARCHAR"
+			property="rPname" />
+	<result column="r_sex" jdbcType="VARCHAR"
+			property="rSex" />
+	<result column="r_age" jdbcType="INTEGER"
+			property="rAge" />
+	<result column="r_school" jdbcType="VARCHAR"
+			property="rSchool" />
+	<result column="r_speciality" jdbcType="VARCHAR"
+			property="rSpeciality" />
+	<result column="r_education" jdbcType="VARCHAR"
+			property="rEducation" />
+	<result column="r_language" jdbcType="VARCHAR"
+			property="rLanguage" />
+	<result column="r_background" jdbcType="VARCHAR"
+			property="rBackground" />
+	<result column="r_tel" jdbcType="BIGINT"
+			property="rTel" />
+	<result column="r_email" jdbcType="VARCHAR"
+			property="rEmail" />
+	<result column="r_time" jdbcType="TIMESTAMP"
+			property="rTime" />
+</resultMap>
+<!-- 投递简历 -->
+<insert id="addresume" parameterType="com.xcxy.resume.entity.Resume">
+insert into resume(r_name,r_dNum,r_pName,r_sex,r_age,r_school,r_speciality,r_education,
+	r_language,r_background,r_tel,r_email,r_time) 
+	value(#{rName,jdbcType=VARCHAR},#{rDnum,jdbcType=VARCHAR},#{rPname,jdbcType=VARCHAR},#{rSex,jdbcType=VARCHAR},
+	#{rAge,jdbcType=INTEGER},#{rSchool,jdbcType=VARCHAR},#{rSpeciality,jdbcType=VARCHAR},#{rEducation,jdbcType=VARCHAR},
+	#{rLanguage,jdbcType=VARCHAR},#{rBackground,jdbcType=VARCHAR},#{rTel,jdbcType=BIGINT},#{rEmail,jdbcType=VARCHAR},
+	#{rTime,jdbcType=TIMESTAMP})
+</insert>
+<!-- 删除简历 -->
+<delete id="deleteresumeById" parameterType="java.lang.Integer">
+	delete from resume where r_num=#{rId,jdbcType=INTEGER}
+</delete>
+<!-- 录取实习生 -->
+<insert id="setresumetopractice" parameterType="com.xcxy.practice.entity.Practice">
+insert into practice(p_num,p_name,p_sex,p_dnum,p_school,
+p_speciality,p_education,p_stime,p_etime) 
+SELECT #{pNum,jdbcType=VARCHAR},r_name,r_sex,r_dnum,r_school,
+r_speciality,r_education,#{pStime,jdbcType=TIMESTAMP},#{pEtime,jdbcType=TIMESTAMP}
+ from resume where r_num=#{pDnum,jdbcType=VARCHAR}
+</insert>
+<!-- 主管查看投递到该部门的简历 -->
+<select id="selectresumeBydNum" parameterType="java.lang.String" resultMap="ResumeMap">
+	select*from resume where r_dnum=#{dNum,jdbcType=VARCHAR}
+</select>
+
+</mapper>

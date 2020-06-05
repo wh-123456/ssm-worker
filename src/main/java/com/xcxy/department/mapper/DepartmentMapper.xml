@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xcxy.department.dao.DepartmentMapper">
+<resultMap type="com.xcxy.department.entity.Department" id="DepartmentMap">
+	<result column="d_num" jdbcType="VARCHAR"
+			property="dNum" />
+	<result column="d_name" jdbcType="VARCHAR"
+			property="dName" />
+	<result column="w_name" jdbcType="VARCHAR"
+			property="bossName" />
+	<result column="count" jdbcType="VARCHAR"
+			property="count" />
+	<result column="d_time" jdbcType="TIMESTAMP"
+			property="dTime" />
+</resultMap>
+<resultMap type="com.xcxy.money.entity.Money" id="MonMap">
+	<result column="m_pname" jdbcType="VARCHAR"
+			property="mPname" />
+</resultMap>
+<!-- 添加部门 -->
+<insert id="adddepartment" parameterType="com.xcxy.department.entity.Department">
+insert into department(d_num,d_name,d_time) value(#{dNum,jdbcType=VARCHAR},#{dName,jdbcType=VARCHAR},#{dTime,jdbcType=TIMESTAMP})
+</insert>
+<!-- 部门职位新增 -->
+<insert id="addPnameByNum" parameterType="com.xcxy.money.entity.Money">
+INSERT into money(m_dnum,m_pname) VALUES(#{mDnum,jdbcType=VARCHAR},#{mPname,jdbcType=VARCHAR})
+</insert>
+<!-- 修改部门 -->
+<update id="updatedepartment" parameterType="com.xcxy.department.entity.Department">
+UPDATE department SET d_num=#{newdNum,jdbcType=VARCHAR},d_name=#{dName,jdbcType=VARCHAR} where d_num=#{dNum,jdbcType=VARCHAR};
+</update>
+<!-- 将部门里某职位的员工职位更改为职员-->
+<update id="updatePnameByNum" parameterType="com.xcxy.money.entity.Money">
+update worker set w_pname='职员' where w_dnum=#{mDnum,jdbcType=VARCHAR} and w_pname=#{mPname,jdbcType=VARCHAR}
+</update>
+<!-- 修改部门编号为待分配 -->
+<update id="updateWorkerDnum" parameterType="java.lang.String">
+UPDATE worker SET w_dnum="10000" where w_dnum=#{dNum,jdbcType=VARCHAR};
+</update>
+<update id="updateWokerDe" parameterType="com.xcxy.department.entity.Department">
+update worker set w_dnum=#{newdNum,jdbcType=VARCHAR} where w_dnum=#{dNum,jdbcType=VARCHAR}
+</update>
+<!-- 删除部门 -->
+<delete id="deleteDepartment" parameterType="java.lang.String">
+delete from department where d_num=#{dNum,jdbcType=VARCHAR}
+</delete>
+<!-- 部门职位删除 -->
+<delete id="deletePnameByNum" parameterType="com.xcxy.money.entity.Money">
+delete from money where m_dnum=#{mDnum,jdbcType=VARCHAR} and m_pname=#{mPname,jdbcType=VARCHAR}
+</delete>
+<!-- 部门员工列表删 -->
+<delete id="deleteDepartmentWorker" parameterType="java.lang.String">
+		delete from worker
+		where w_dnum = #{dNum,jdbcType=VARCHAR}
+</delete>
+<!-- 部门员工信息表删 -->
+<delete id="deleteDepartmentWorkerInfo" parameterType="java.lang.String">
+		delete a from worker_info a,(SELECT w_num from worker w,worker_info wi where w.w_num=wi.wi_num and w.w_dnum=#{dNum,jdbcType=VARCHAR} 
+)b where a.wi_num =b.w_num
+</delete>
+<!-- 部门列表 -->
+<select id="finddepartment" resultMap="DepartmentMap">
+select a.d_num,a.d_name,a.d_time,a.count,b.w_name from (SELECT d.d_num,d.d_name,d_time,COUNT(w.w_dnum) AS 
+count from worker w RIGHT JOIN department d on d.d_num=w.w_dnum where d.d_num!="10000"
+ GROUP BY d.d_num ORDER BY d.d_num  )a LEFT JOIN (select *from worker where w_pname="主管" )b on a.d_num=b.w_dnum
+</select>
+<!-- 部门职称查询 -->
+<select id="selectpNameByNum" resultMap="MonMap" parameterType="java.lang.String">
+select m_pname from money where m_dnum=#{dNum,jdbcType=VARCHAR}
+</select>
+<!-- 查询一个部门的主管 -->
+<select id="selectBossByDnum" resultMap="MonMap" parameterType="java.lang.String">
+select*from worker where w_dnum=#{dNum,jdbcType=VARCHAR} and w_pname="主管"
+</select>
+<!-- 合并部门 -->
+<update id="updateWorkerBoss" parameterType="java.lang.String">
+update worker set w_pname="职员" where w_dnum=#{dNum,jdbcType=VARCHAR};
+</update>
+<update id="updateWorkerBoss2" parameterType="com.xcxy.worker.entity.Worker">
+update  worker set w_dnum="10086",w_pname="主管" 
+where w_num=#{wNum,jdbcType=VARCHAR} and w_name=#{wName,jdbcType=VARCHAR} and 
+w_pname!="主管" 
+</update>
+</mapper>
